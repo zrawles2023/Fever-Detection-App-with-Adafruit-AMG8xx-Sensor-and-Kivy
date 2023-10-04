@@ -1,0 +1,44 @@
+
+
+import kivy
+kivy.require('1.11.1')
+
+from kivy.app import App
+from kivy.uix.label import Label
+from kivy.lang import Builder
+from kivy.clock import Clock
+from kivy.properties import StringProperty, ListProperty
+from Adafruit_AMG88xx import Adafruit_AMG88xx
+from time import sleep
+
+sensor = Adafruit_AMG88xx()
+
+sleep(0.1)
+
+kv = '''
+Label:
+    text: app.warning
+'''
+
+class MyApp(App):
+    sensors = ListProperty()
+    warning = StringProperty()
+
+    def build(self):
+        Clock.schedule_interval(self.check_sensor, 1)
+        return Builder.load_string(kv)
+
+    def check_sensor(self, dt):
+        self.sensors = sensor.readPixels()
+
+    def on_sensors(self, inst, value):
+        if any(i > 34 for i in self.sensors):
+            self.warning = "Fever Detected"
+
+    def clear_text(self, dt):
+        self.warning = ""
+
+if __name__ == "__main__":
+    app = myApp()
+    Clock.schedule_once(app.clear_text, 10)
+    app.run()
