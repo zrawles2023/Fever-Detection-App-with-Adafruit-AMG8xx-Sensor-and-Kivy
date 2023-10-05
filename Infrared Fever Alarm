@@ -1,5 +1,3 @@
-
-
 import kivy
 kivy.require('1.11.1')
 
@@ -11,34 +9,51 @@ from kivy.properties import StringProperty, ListProperty
 from Adafruit_AMG88xx import Adafruit_AMG88xx
 from time import sleep
 
+# Initialize the Adafruit AMG88xx thermal sensor
 sensor = Adafruit_AMG88xx()
 
+# Sleep for a short period to allow the sensor to initialize
 sleep(0.1)
 
+# Define the Kivy language string that specifies the UI layout
 kv = '''
 Label:
     text: app.warning
 '''
 
+# Kivy application class for the apps main function
 class MyApp(App):
-    sensors = ListProperty()
-    warning = StringProperty()
+    sensors = ListProperty()  # List to store sensor data
+    warning = StringProperty()  # Property to store warning message
 
     def build(self):
+        # Schedule the check_sensor method to run every 1 second
         Clock.schedule_interval(self.check_sensor, 1)
+        # Load the UI defined in the kv string
         return Builder.load_string(kv)
 
     def check_sensor(self, dt):
+        # Read temperature data from the sensor and update the sensors list
         self.sensors = sensor.readPixels()
 
     def on_sensors(self, inst, value):
+        # Called when the sensors list is updated
+        # Check if any temperature reading in self.sensors is above 34 degrees Celsius
         if any(i > 34 for i in self.sensors):
+            # Set the warning message to "Fever Detected" if a fever is detected
             self.warning = "Fever Detected"
 
     def clear_text(self, dt):
+        # Called once 10 seconds after the app starts
+        # Clear the warning message by setting it to an empty string
         self.warning = ""
 
 if __name__ == "__main__":
-    app = myApp()
+    # Create an instance of the custom MyApp class
+    app = MyApp()
+    # Schedule the clear_text method to run after 10 seconds
     Clock.schedule_once(app.clear_text, 10)
+    # Run the Kivy application
     app.run()
+
+
